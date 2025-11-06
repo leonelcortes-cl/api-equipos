@@ -5,7 +5,11 @@
   <title>Ingreso de Horómetro</title>
 </head>
 <body>
-  <h1>Ingreso de Datos del Equipo</h1>
+  <h1>Ingreso de Datos del Equipo: 
+    {% if codigo %}
+      {{ codigo }}
+    {% endif %}
+  </h1>
   <form method="post">
     {% csrf_token %}
     <label>RUT:</label><br>

@@ -1,4 +1,5 @@
 from django.shortcuts import render
 
-def home(request):
-    return render(request, 'home.html')
+def home(request, codigo=None):
+    context = {'codigo': codigo}
+    return render(request, 'home.html', context)
