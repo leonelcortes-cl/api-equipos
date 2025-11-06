@@ -5,9 +5,9 @@
   <title>Ingreso de Horómetro</title>
 </head>
 <body>
-  <h1>Ingreso de Datos del Equipo: 
-    {% if codigo %}
-      {{ codigo }}
+  <h1>
+    {% if equipo %}
+      <p><strong>Equipo detectado:</strong> {{ equipo }}</p>
     {% endif %}
   </h1>
   <form method="post">

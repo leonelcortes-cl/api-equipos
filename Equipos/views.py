@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db import connection
 from django.utils import timezone
@@ -14,8 +14,6 @@ def buscar_equipo(request, codigo):
         return HttpResponse(f"✅ Equipo encontrado: {resultado}")
     else:
         return HttpResponse("❌ No existe ningún equipo con ese código.")
-
-
 
 def equipo_form(request, codigo):
     if request.method == "POST":
@@ -56,3 +54,10 @@ def equipo_form(request, codigo):
 
     # Si es GET → muestra el formulario
     return render(request, "equipos_form.html", {"codigo": codigo})
+
+def home(request):
+    equipo = request.GET.get('equipo', None)
+    return render(request, 'home.html', {'equipo': equipo})
+
+def redirigir_a_home(request, codigo):
+    return redirect(f"/?equipo={codigo}")
