@@ -78,17 +78,29 @@ WSGI_APPLICATION = 'Maquinaria.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql.connector.django',  # usamos el conector oficial
-        'NAME': 'cso60906_Equipos',
-        'USER': 'cso60906_dba',
-        'PASSWORD': 'Miscka-2025',
-        'HOST': '135.148.188.205',
-        'PORT': '3306',
-        'OPTIONS': {
-            'autocommit': True,
-        },
+        'ENGINE': 'mysql.connector.django',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
+        'OPTIONS': {'autocommit': True},
     }
 }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'mysql.connector.django',  # usamos el conector oficial
+#        'NAME': 'cso60906_Equipos',
+#        'USER': 'cso60906_dba',
+#        'PASSWORD': 'Miscka-2025',
+#        'HOST': '135.148.188.205',
+#        'PORT': '3306',
+#        'OPTIONS': {
+#            'autocommit': True,
+#        },
+#    }
+#}
 
 
 # Password validation
