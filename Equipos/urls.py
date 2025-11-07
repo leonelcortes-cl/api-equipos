@@ -2,8 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    #path('api/equipos/<str:codigo>/', views.buscar_equipo, name='buscar_equipo'),
-    #path('api/equipos/<str:codigo>/', views.equipo_form, name='equipo_form'),
+    # Página principal del módulo de equipos
     path('', views.home, name='home'),
-    path('api/equipos/<str:codigo>/', views.redirigir_a_home, name='redirigir'),
+
+    # Detalle de un equipo por código
+    path('equipo/<str:codigo>/', views.detalle_equipo, name='detalle_equipo'),
 ]

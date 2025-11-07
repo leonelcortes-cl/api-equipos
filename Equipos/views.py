@@ -1,63 +1,12 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.db import connection
-from django.utils import timezone
-import mysql.connector
-from django.conf import settings
+from django.shortcuts import render, get_object_or_404
+from .models import Equipo  # suponiendo que tu modelo se llama así
 
-def buscar_equipo(request, codigo):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM tdEquipos WHERE idTxt_Ppu = %s", [codigo])
-        resultado = cursor.fetchone()
-
-    if resultado:
-        return HttpResponse(f"✅ Equipo encontrado: {resultado}")
-    else:
-        return HttpResponse("❌ No existe ningún equipo con ese código.")
-
-def equipo_form(request, codigo):
-    if request.method == "POST":
-        rut = request.POST.get("rut")
-        horometro = request.POST.get("horometro")
-
-        # Conexión directa a la BD
-        conn = mysql.connector.connect(
-            host=settings.DATABASES['default']['HOST'],
-            user=settings.DATABASES['default']['USER'],
-            password=settings.DATABASES['default']['PASSWORD'],
-            database=settings.DATABASES['default']['NAME'],
-            port=settings.DATABASES['default']['PORT']
-        )
-        cursor = conn.cursor()
-
-        # Crear tabla si no existe
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS tdHorometros (
-                idNum_Registro INT AUTO_INCREMENT PRIMARY KEY,
-                dtTxt_Ppu VARCHAR(20),
-                dtTxt_Rut VARCHAR(20),
-                dtNum_Horometro DECIMAL(10,2),
-                dtFec_Fecha DATETIME
-            )
-        """)
-
-        # Insertar datos
-        cursor.execute("""
-            INSERT INTO tdHorometros (dtTxt_Ppu, dtTxt_Rut, dtNum_Horometro, dtFec_Fecha)
-            VALUES (%s, %s, %s, %s)
-        """, (codigo, rut, horometro, timezone.now()))
-
-        conn.commit()
-        conn.close()
-
-        return HttpResponse("<h2>✅ Registro guardado correctamente</h2>")
-
-    # Si es GET → muestra el formulario
-    return render(request, "equipos_form.html", {"codigo": codigo})
-
+# Vista principal: lista de equipos
 def home(request):
-    equipo = request.GET.get('equipo', None)
-    return render(request, 'home.html', {'equipo': equipo})
+    equipos = Equipo.objects.all()
+    return render(request, 'Equipos/equipos_form.html', {'equipos': equipos})
 
-def redirigir_a_home(request, codigo):
-    return redirect(f"/?equipo={codigo}")
+# Vista de detalle: muestra información de un solo equipo
+def detalle_equipo(request, codigo):
+    equipo = get_object_or_404(Equipo, codigo=codigo)
+    return render(request, 'Equipos/detalles_equipo.html', {'equipo': equipo})
