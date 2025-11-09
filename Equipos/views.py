@@ -2,15 +2,26 @@ from django.shortcuts import render
 from django.db import connection
 
 def home(request, codigo):
-    # Buscar el equipo por código
+    # Buscar el equipo por su código (idTxt_Ppu)
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM tdEquipos WHERE idTxt_Ppu = %s", [codigo])
+        cursor.execute("""
+            SELECT dtTxt_Marca, dtTxt_Modelo
+            FROM tdEquipos
+            WHERE idTxt_Ppu = %s
+        """, [codigo])
         equipo = cursor.fetchone()
 
-    # Validar existencia
     if equipo:
-        # Si el código existe, mostrar el formulario
-        return render(request, 'equipos/home.html', {'codigo': codigo, 'existe': True})
+        # Desempaquetar los valores de la tupla
+        marca, modelo = equipo
+        return render(request, 'equipos/home.html', {
+            'codigo': codigo,
+            'marca': marca,
+            'modelo': modelo,
+            'existe': True
+        })
     else:
-        # Si no existe, mostrar mensaje de error
-        return render(request, 'equipos/home.html', {'codigo': codigo, 'existe': False})
+        return render(request, 'equipos/home.html', {
+            'codigo': codigo,
+            'existe': False
+        })

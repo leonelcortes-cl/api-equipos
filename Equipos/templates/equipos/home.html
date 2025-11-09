@@ -11,14 +11,17 @@
     input { margin: 10px 0; padding: 10px; width: 90%; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
     button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
     button:hover { background: #0056b3; }
-    .codigo { margin-bottom: 20px; font-size: 14px; color: #555; }
+    .codigo, .marca, .modelo { margin-bottom: 10px; font-size: 14px; color: #555; }
     .error { color: #b30000; background: #ffe5e5; padding: 15px; border-radius: 8px; display: inline-block; }
   </style>
 </head>
 <body>
   {% if existe %}
     <h1>Registro de Horómetro</h1>
-    <div class="codigo">Equipo: <strong>{{ codigo }}</strong></div>
+    <div class="codigo">
+      Equipo: <strong>{{ codigo }} [{{ marca }}, {{ modelo }}]</strong>
+    </div>
+
     <form method="post">
       {% csrf_token %}
       <input type="text" name="rut" placeholder="Ingrese RUT" required><br>
@@ -26,9 +29,7 @@
       <button type="submit">Enviar</button>
     </form>
   {% else %}
-    <h1>¡¡¡Alerta!!!
-      <p>Código no encontrado</p>
-    </h1>
+    <h1>❌ Código no encontrado</h1>
     <div class="error">
       El equipo con código <strong>{{ codigo }}</strong> no existe en la base de datos.
     </div>
