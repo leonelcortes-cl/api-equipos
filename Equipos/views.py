@@ -1,12 +1,16 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Equipo  # suponiendo que tu modelo se llama así
+from django.shortcuts import render
+from django.http import HttpResponse
 
-# Vista principal: lista de equipos
-def home(request):
-    equipos = Equipo.objects.all()
-    return render(request, 'Equipos/equipos_form.html', {'equipos': equipos})
+def home(request, codigo):
+    if request.method == 'POST':
+        rut = request.POST.get('rut')
+        horometro = request.POST.get('horometro')
+        
+        # Aquí podrías guardar los datos en la base de datos si quisieras
+        # Ejemplo:
+        # RegistroHorometro.objects.create(codigo=codigo, rut=rut, horometro=horometro)
 
-# Vista de detalle: muestra información de un solo equipo
-def detalle_equipo(request, codigo):
-    equipo = get_object_or_404(Equipo, codigo=codigo)
-    return render(request, 'Equipos/detalles_equipo.html', {'equipo': equipo})
+        return HttpResponse(f"Registro recibido para el equipo {codigo}: RUT {rut}, Horómetro {horometro}")
+
+    # Si es GET, simplemente muestra el formulario con el código
+    return render(request, 'equipos/home.html', {'codigo': codigo})
