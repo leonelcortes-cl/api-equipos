@@ -4,7 +4,7 @@ from django.db import connection
 def home(request, codigo):
     # Buscar el equipo por código
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM tdEquipos WHERE codigo = %s", [codigo])
+        cursor.execute("SELECT * FROM tdEquipos WHERE idTxt_Ppu = %s", [codigo])
         equipo = cursor.fetchone()
 
     # Validar existencia
