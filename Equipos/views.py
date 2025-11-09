@@ -1,16 +1,16 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.db import connection
 
 def home(request, codigo):
-    if request.method == 'POST':
-        rut = request.POST.get('rut')
-        horometro = request.POST.get('horometro')
-        
-        # Aquí podrías guardar los datos en la base de datos si quisieras
-        # Ejemplo:
-        # RegistroHorometro.objects.create(codigo=codigo, rut=rut, horometro=horometro)
+    # Buscar el equipo por código
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM tdEquipos WHERE codigo = %s", [codigo])
+        equipo = cursor.fetchone()
 
-        return HttpResponse(f"Registro recibido para el equipo {codigo}: RUT {rut}, Horómetro {horometro}")
-
-    # Si es GET, simplemente muestra el formulario con el código
-    return render(request, 'equipos/home.html', {'codigo': codigo})
+    # Validar existencia
+    if equipo:
+        # Si el código existe, mostrar el formulario
+        return render(request, 'equipos/home.html', {'codigo': codigo, 'existe': True})
+    else:
+        # Si no existe, mostrar mensaje de error
+        return render(request, 'equipos/home.html', {'codigo': codigo, 'existe': False})
