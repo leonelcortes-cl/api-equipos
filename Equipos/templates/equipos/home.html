@@ -65,10 +65,8 @@
 <body>
 <div class="container">
     {% if existe %}
-        <h2>Equipo {{ codigo }}</h2>
-        <p><strong>Marca:</strong> {{ marca }}</p>
-        <p><strong>Modelo:</strong> {{ modelo }}</p>
-
+        <h2><strong>Equipo {{ codigo }}</strong></h2>
+        <p><strong>Detalle: </strong>{{ marca }}, {{ modelo }}</p>
         <div class="card">
             <h3>Ingresar lectura de horómetro</h3>
             <form method="POST">
@@ -85,8 +83,8 @@
                         <div class="datos">
                             <p><strong>Operador:</strong> {{ datos_registro.nombre }} {{ datos_registro.apellidos }}</p>
                             <p><strong>Equipo:</strong> {{ datos_registro.codigo }}</p>
-                            <p><strong>Horómetro:</strong> {{ datos_registro.horometro }}</p>
-                            <p><strong>Fecha:</strong> {{ datos_registro.fecha }}</p>
+                            <p><strong>Horómetro:</strong> [{{ datos_registro.horometro }}]  =//=  <strong>[Fecha:</strong> {{ datos_registro.fecha }}]</p>
+                            <p></p>
                         </div>
                     </div>
                 {% else %}
