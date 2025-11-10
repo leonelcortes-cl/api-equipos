@@ -10,8 +10,8 @@ config = {
     'database': 'cso60906_Equipos'
 }
 
-excel_file = 'Libro1.xlsx'
-table_name = 'tdOperadores'
+excel_file = 'horometro.xlsx'
+table_name = 'tdHorometro'
 
 try:
     # Leer el Excel

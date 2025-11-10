@@ -3,70 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Registros de Horómetro</title>
+  <title>Dashboard de Horómetros</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f3f4f6; padding: 40px; text-align: center; }
     h1 { color: #333; margin-bottom: 30px; }
     form { background: white; padding: 20px; display: inline-block; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    select, button { margin: 5px; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc; }
+    input, button { margin: 5px; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc; }
     button { background: #007bff; color: white; cursor: pointer; }
     button:hover { background: #0056b3; }
-    table { margin: 0 auto; border-collapse: collapse; width: 90%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
-    th { background: #007bff; color: white; }
+    table { margin: 0 auto; border-collapse: collapse; width: 95%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    th { background: #007bff; color: white; position: sticky; top: 0; }
     tr:hover { background: #f1f1f1; }
     .no-data { color: #555; background: #fff3cd; padding: 15px; display: inline-block; border-radius: 8px; margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h1>📊 DashBoard de Registros de Horómetro</h1>
+  <h1>📊 Dashboard de Horómetros</h1>
+
   <form method="get">
-    <label>Año:</label>
-    <select name="anio" required>
-      <option value="">Seleccione año</option>
-      {% for y in anios %}
-        <option value="{{ y }}" {% if y|stringformat:"s" == anio %}selected{% endif %}>{{ y }}</option>
-      {% endfor %}
-    </select>
-
-    <label>Mes:</label>
-    <select name="mes" required>
-      <option value="">Seleccione mes</option>
-      {% for num, nombre in meses.items %}
-        <option value="{{ num }}" {% if num|stringformat:"s" == mes %}selected{% endif %}>{{ nombre }}</option>
-      {% endfor %}
-    </select>
-
+    <label>Desde:</label>
+    <input type="date" name="inicio" value="{{ fecha_inicio }}" required>
+    <label>Hasta:</label>
+    <input type="date" name="fin" value="{{ fecha_fin }}" required>
     <button type="submit">Filtrar</button>
   </form>
 
-  {% if registros %}
+  {% if tabla %}
     <table>
       <thead>
         <tr>
-          <th>Equipo (PPU)</th>
-          <th>RUT</th>
-          <th>Operador</th>
-          <th>Horómetro</th>
-          <th>Fecha de Registro</th>
+          <th>PPU</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          {% for fecha in columnas_fechas %}
+            <th>{{ fecha|date:"d-m-Y" }}</th>
+          {% endfor %}
         </tr>
       </thead>
       <tbody>
-        {% for r in registros %}
+        {% for fila in tabla %}
           <tr>
-            <td>{{ r.0 }}</td>
-            <td>{{ r.1 }}</td>
-            <td>{{ r.4 }} {{ r.5 }}</td>
-            <td>{{ r.2 }}</td>
-            <td>{{ r.3 }}</td>
+            {% for valor in fila %}
+              <td>{{ valor }}</td>
+            {% endfor %}
           </tr>
         {% endfor %}
       </tbody>
     </table>
-  {% elif anio and mes %}
-    <div class="no-data">
-      ⚠️ No se encontraron registros para {{ mes_nombre }} de {{ anio }}.
-    </div>
+  {% elif fecha_inicio and fecha_fin %}
+    <div class="no-data">⚠️ No hay registros en el rango seleccionado.</div>
   {% endif %}
 </body>
 </html>

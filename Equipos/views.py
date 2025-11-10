@@ -1,10 +1,6 @@
 from django.shortcuts import render
 from django.db import connection
-from datetime import date
-
-from django.shortcuts import render
-from django.db import connection
-from datetime import date
+from datetime import datetime, timedelta
 
 def home(request, codigo):
     mensaje = None
@@ -88,42 +84,64 @@ def home(request, codigo):
         'datos_registro': datos_registro
     })
 
+from django.shortcuts import render
+from django.db import connection
+from datetime import datetime, timedelta
 
 def dashboard(request):
-    anio = request.GET.get('anio')
-    mes = request.GET.get('mes')
-
-    meses = {
-        "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
-        "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
-        "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
-    }
-
+    fecha_inicio = request.GET.get('inicio')
+    fecha_fin = request.GET.get('fin')
     registros = []
-    mes_nombre = None
+    columnas_fechas = []
+    tabla = []
 
-    if anio and mes:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT idTxt_Ppu, idNum_RUT, dtNum_Horometro, dtFec_Registro
-                FROM tdHorometro 
-                WHERE YEAR(dtFec_Registro) = %s AND MONTH(dtFec_Registro) = %s
-                ORDER BY dtFec_Registro DESC
-            """, [anio, mes])
-            registros = cursor.fetchall()
-        mes_nombre = meses.get(mes.zfill(2), "")
+    if fecha_inicio and fecha_fin:
+        try:
+            # Convertir fechas a objetos datetime
+            inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+            fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
 
-    # Años disponibles para el filtro
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT DISTINCT YEAR(dtFec_Registro) FROM tdHorometro ORDER BY 1 DESC")
-        anios = [row[0] for row in cursor.fetchall()]
+            # Obtener todas las fechas del rango
+            columnas_fechas = [(inicio + timedelta(days=i)) for i in range((fin - inicio).days + 1)]
+
+            with connection.cursor() as cursor:
+                # Obtener todos los equipos con sus lecturas dentro del rango
+                cursor.execute("""
+                    SELECT h.idTxt_Ppu, e.dtTxt_Marca, e.dtTxt_Modelo, h.dtFec_Registro, h.dtNum_Horometro
+                    FROM tdHorometro h
+                    JOIN tdEquipos e ON h.idTxt_Ppu = e.idTxt_Ppu
+                    WHERE h.dtFec_Registro BETWEEN %s AND %s
+                    ORDER BY h.idTxt_Ppu, h.dtFec_Registro
+                """, [inicio, fin])
+                registros = cursor.fetchall()
+
+            # Reorganizar registros en formato {ppu: {fecha: horometro}}
+            data_por_equipo = {}
+            for ppu, marca, modelo, fecha, horometro in registros:
+                if ppu not in data_por_equipo:
+                    data_por_equipo[ppu] = {
+                        'marca': marca,
+                        'modelo': modelo,
+                        'lecturas': {}
+                    }
+                data_por_equipo[ppu]['lecturas'][fecha] = horometro
+
+            # Construir la tabla final
+            for ppu, datos in data_por_equipo.items():
+                fila = [ppu, datos['marca'], datos['modelo']]
+                for fecha in columnas_fechas:
+                    valor = datos['lecturas'].get(fecha)
+                    fila.append(valor if valor is not None else "")
+                tabla.append(fila)
+
+        except ValueError:
+            registros = []
+            columnas_fechas = []
+            tabla = []
 
     return render(request, 'equipos/dashboard.html', {
-        'registros': registros,
-        'anios': anios,
-        'meses': meses,
-        'anio': anio,
-        'mes': mes,
-        'mes_nombre': mes_nombre,
+        'tabla': tabla,
+        'columnas_fechas': columnas_fechas,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin
     })
-
