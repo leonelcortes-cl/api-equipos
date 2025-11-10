@@ -65,7 +65,9 @@
       </tbody>
     </table>
   {% elif anio and mes %}
-    <div class="no-data">⚠️ No se encontraron registros para {{ meses|dictsort:0|get_item:mes }} de {{ anio }}.</div>
+    <div class="no-data">
+      ⚠️ No se encontraron registros para {{ mes_nombre }} de {{ anio }}.
+    </div>
   {% endif %}
 </body>
 </html>

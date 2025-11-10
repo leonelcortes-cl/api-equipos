@@ -73,30 +73,37 @@ def dashboard(request):
     anio = request.GET.get('anio')
     mes = request.GET.get('mes')
 
-    registros = []
     meses = {
-        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
-        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
-        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+        "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+        "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+        "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
     }
-    anios = [2023, 2024, 2025, 2026]
+
+    registros = []
+    mes_nombre = None
 
     if anio and mes:
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT H.idTxt_Ppu, H.idNum_Rut, H.dtNum_Horometro, H.dtFec_Registro,
-                       O.dtTxt_Nombre, O.dtTxt_Apellidos
-                FROM tdHorometro H
-                JOIN tdOperadores O ON H.idNum_Rut = O.idNum_RUT
-                WHERE YEAR(H.dtFec_Registro) = %s AND MONTH(H.dtFec_Registro) = %s
-                ORDER BY H.dtFec_Registro DESC
+                SELECT equipo_id, rut_operador, horometro, fecha_registro, nombre, apellido 
+                FROM tdHorometro 
+                WHERE YEAR(fecha_registro) = %s AND MONTH(fecha_registro) = %s
+                ORDER BY fecha_registro DESC
             """, [anio, mes])
             registros = cursor.fetchall()
+        mes_nombre = meses.get(mes.zfill(2), "")
+
+    # Años disponibles para el filtro
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT DISTINCT YEAR(fecha_registro) FROM tdHorometro ORDER BY 1 DESC")
+        anios = [row[0] for row in cursor.fetchall()]
 
     return render(request, 'equipos/dashboard.html', {
         'registros': registros,
+        'anios': anios,
+        'meses': meses,
         'anio': anio,
         'mes': mes,
-        'anios': anios,
-        'meses': meses
+        'mes_nombre': mes_nombre,
     })
+
