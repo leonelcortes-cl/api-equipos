@@ -85,17 +85,17 @@ def dashboard(request):
     if anio and mes:
         with connection.cursor() as cursor:
             cursor.execute("""
-                SELECT equipo_id, rut_operador, horometro, fecha_registro, nombre, apellido 
+                SELECT idTxt_Ppu, idNum_RUT, dtNum_Horometro, dtFec_Registro
                 FROM tdHorometro 
-                WHERE YEAR(fecha_registro) = %s AND MONTH(fecha_registro) = %s
-                ORDER BY fecha_registro DESC
+                WHERE YEAR(dtFec_Registro) = %s AND MONTH(dtFec_Registro) = %s
+                ORDER BY dtFec_Registro DESC
             """, [anio, mes])
             registros = cursor.fetchall()
         mes_nombre = meses.get(mes.zfill(2), "")
 
     # Años disponibles para el filtro
     with connection.cursor() as cursor:
-        cursor.execute("SELECT DISTINCT YEAR(fecha_registro) FROM tdHorometro ORDER BY 1 DESC")
+        cursor.execute("SELECT DISTINCT YEAR(dtFec_Registro) FROM tdHorometro ORDER BY 1 DESC")
         anios = [row[0] for row in cursor.fetchall()]
 
     return render(request, 'equipos/dashboard.html', {
