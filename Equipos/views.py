@@ -54,12 +54,12 @@ def home(request, codigo):
                 with connection.cursor() as cursor:
                     cursor.execute("""
                         SELECT COUNT(*) FROM tdHorometro
-                        WHERE idTxt_Ppu = %s AND idNum_Rut = %s AND dtFec_Registro = %s
-                    """, [codigo, rut, date.today()])
+                        WHERE idTxt_Ppu = %s AND dtFec_Registro = %s
+                    """, [codigo, date.today()])
                     existe_registro = cursor.fetchone()[0] > 0
 
                 if existe_registro:
-                    mensaje = "⚠️ Ya existe un registro para este operador y equipo hoy."
+                    mensaje = "⚠️ Ya existe un registro para este equipo hoy."
                 else:
                     # Guardar el registro en tdHorometro
                     with connection.cursor() as cursor:
