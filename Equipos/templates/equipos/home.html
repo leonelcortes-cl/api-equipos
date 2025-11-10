@@ -1,102 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Horómetro</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; padding: 40px; }
-    h1 { color: #333; margin-bottom: 10px; }
-    .contenedor {
-      background: white;
-      display: inline-block;
-      padding: 30px 50px;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    input {
-      margin: 10px 0;
-      padding: 10px;
-      width: 90%;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover { background: #0056b3; }
-    .codigo, .marca, .modelo {
-      margin-bottom: 10px;
-      font-size: 14px;
-      color: #555;
-    }
-    .mensaje {
-      margin-top: 20px;
-      font-weight: bold;
-      padding: 12px;
-      border-radius: 8px;
-      display: inline-block;
-      width: 90%;
-    }
-    .mensaje.ok {
-      background: #e8f9ee;
-      color: #0b7a29;
-      border: 1px solid #8fd39f;
-    }
-    .mensaje.error {
-      background: #ffe5e5;
-      color: #b30000;
-      border: 1px solid #ff9c9c;
-    }
-    .error-general {
-      color: #b30000;
-      background: #ffe5e5;
-      padding: 15px;
-      border-radius: 8px;
-      display: inline-block;
-      width: 80%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Horómetro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            margin: 40px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            text-align: center;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+        .success {
+            background-color: #dff0d8;
+            border: 1px solid #b2d8b2;
+            color: #3c763d;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .error {
+            background-color: #f2dede;
+            border: 1px solid #e0b4b4;
+            color: #a94442;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .datos {
+            text-align: left;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    {% if existe %}
+        <h2>Equipo {{ codigo }}</h2>
+        <p><strong>Marca:</strong> {{ marca }}</p>
+        <p><strong>Modelo:</strong> {{ modelo }}</p>
 
-  {% if existe %}
-    <div class="contenedor">
-      <h1>Registro de Horómetro</h1>
-      <div class="codigo">
-        Equipo: <strong>{{ codigo }}</strong><br>
-        <span style="font-size: 13px;">{{ marca }} - {{ modelo }}</span>
-      </div>
+        <div class="card">
+            <h3>Ingresar lectura de horómetro</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="text" name="rut" placeholder="Ingrese RUT del operador" required><br>
+                <input type="number" name="horometro" placeholder="Lectura horómetro" required><br>
+                <button type="submit">Registrar</button>
+            </form>
 
-      <form method="post">
-        {% csrf_token %}
-        <input type="text" name="rut" placeholder="Ingrese RUT" required><br>
-        <input type="number" step="0.01" name="horometro" placeholder="Ingrese Horómetro" required><br>
-        <button type="submit">Enviar</button>
-      </form>
-
-      {% if mensaje %}
-        <div class="mensaje {% if autorizado %}ok{% else %}error{% endif %}">
-          {{ mensaje }}
+            {% if mensaje %}
+                {% if datos_registro %}
+                    <div class="success">
+                        <strong>✅ {{ mensaje }}</strong>
+                        <div class="datos">
+                            <p><strong>Operador:</strong> {{ datos_registro.nombre }} {{ datos_registro.apellidos }}</p>
+                            <p><strong>Equipo:</strong> {{ datos_registro.codigo }}</p>
+                            <p><strong>Horómetro:</strong> {{ datos_registro.horometro }}</p>
+                            <p><strong>Fecha:</strong> {{ datos_registro.fecha }}</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="error">{{ mensaje }}</div>
+                {% endif %}
+            {% endif %}
         </div>
-      {% endif %}
-    </div>
-
-  {% else %}
-    <h1>❌ Código no encontrado</h1>
-    <div class="error-general">
-      El equipo con código <strong>{{ codigo }}</strong> no existe en la base de datos.
-    </div>
-  {% endif %}
-
+    {% else %}
+        <h2>⚠️ Equipo con código "{{ codigo }}" no encontrado</h2>
+    {% endif %}
+</div>
 </body>
 </html>
