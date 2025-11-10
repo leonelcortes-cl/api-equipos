@@ -6,33 +6,97 @@
   <title>Registro de Horómetro</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; padding: 40px; }
-    h1 { color: #333; }
-    form { background: white; display: inline-block; padding: 20px 40px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input { margin: 10px 0; padding: 10px; width: 90%; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-    button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+    h1 { color: #333; margin-bottom: 10px; }
+    .contenedor {
+      background: white;
+      display: inline-block;
+      padding: 30px 50px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    input {
+      margin: 10px 0;
+      padding: 10px;
+      width: 90%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
     button:hover { background: #0056b3; }
-    .codigo, .marca, .modelo { margin-bottom: 10px; font-size: 14px; color: #555; }
-    .error { color: #b30000; background: #ffe5e5; padding: 15px; border-radius: 8px; display: inline-block; }
+    .codigo, .marca, .modelo {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+    .mensaje {
+      margin-top: 20px;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      display: inline-block;
+      width: 90%;
+    }
+    .mensaje.ok {
+      background: #e8f9ee;
+      color: #0b7a29;
+      border: 1px solid #8fd39f;
+    }
+    .mensaje.error {
+      background: #ffe5e5;
+      color: #b30000;
+      border: 1px solid #ff9c9c;
+    }
+    .error-general {
+      color: #b30000;
+      background: #ffe5e5;
+      padding: 15px;
+      border-radius: 8px;
+      display: inline-block;
+      width: 80%;
+    }
   </style>
 </head>
 <body>
+
   {% if existe %}
-    <h1>Registro de Horómetro</h1>
-    <div class="codigo">
-      Equipo: <strong>{{ codigo }} [{{ marca }}, {{ modelo }}]</strong>
+    <div class="contenedor">
+      <h1>Registro de Horómetro</h1>
+      <div class="codigo">
+        Equipo: <strong>{{ codigo }}</strong><br>
+        <span style="font-size: 13px;">{{ marca }} - {{ modelo }}</span>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="text" name="rut" placeholder="Ingrese RUT" required><br>
+        <input type="number" step="0.01" name="horometro" placeholder="Ingrese Horómetro" required><br>
+        <button type="submit">Enviar</button>
+      </form>
+
+      {% if mensaje %}
+        <div class="mensaje {% if autorizado %}ok{% else %}error{% endif %}">
+          {{ mensaje }}
+        </div>
+      {% endif %}
     </div>
 
-    <form method="post">
-      {% csrf_token %}
-      <input type="text" name="rut" placeholder="Ingrese RUT" required><br>
-      <input type="number" step="0.01" name="horometro" placeholder="Ingrese Horómetro" required><br>
-      <button type="submit">Enviar</button>
-    </form>
   {% else %}
     <h1>❌ Código no encontrado</h1>
-    <div class="error">
+    <div class="error-general">
       El equipo con código <strong>{{ codigo }}</strong> no existe en la base de datos.
     </div>
   {% endif %}
+
 </body>
 </html>
