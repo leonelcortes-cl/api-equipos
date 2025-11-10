@@ -2,6 +2,40 @@ from django.shortcuts import render
 from django.db import connection
 from datetime import date
 
+def dashboard(request):
+    registros = []
+    anio = request.GET.get('anio')
+    mes = request.GET.get('mes')
+
+    # Si se seleccionó año y mes
+    if anio and mes:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    H.dtFec_Registro,
+                    H.idTxt_Ppu,
+                    E.dtTxt_Marca,
+                    E.dtTxt_Modelo,
+                    H.idNum_Rut,
+                    O.dtTxt_Nombre,
+                    O.dtTxt_Apellidos,
+                    H.dtNum_Horometro
+                FROM tdHorometro H
+                LEFT JOIN tdEquipos E ON H.idTxt_Ppu = E.idTxt_Ppu
+                LEFT JOIN tdOperadores O ON H.idNum_Rut = O.idNum_RUT
+                WHERE YEAR(H.dtFec_Registro) = %s AND MONTH(H.dtFec_Registro) = %s
+                ORDER BY H.dtFec_Registro DESC
+            """, [anio, mes])
+            registros = cursor.fetchall()
+
+    # Enviar datos a la plantilla
+    return render(request, 'equipos/dashboard.html', {
+        'registros': registros,
+        'anio': anio,
+        'mes': mes
+    })
+
+
 def home(request, codigo):
     mensaje = None
     datos_registro = None

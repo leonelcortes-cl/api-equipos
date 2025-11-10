@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard de Horómetros</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            margin: 40px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8f8f8;
+        }
+        .filter {
+            margin-bottom: 20px;
+            background-color: #f3f3f3;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        select, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>📊 Dashboard de Horómetros</h2>
+
+    <div class="filter">
+        <form method="GET">
+            <label>Año:</label>
+            <select name="anio" required>
+                <option value="">Seleccione año</option>
+                {% for y in "2023,2024,2025,2026".split(',') %}
+                    <option value="{{ y }}" {% if y == anio %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Mes:</label>
+            <select name="mes" required>
+                <option value="">Seleccione mes</option>
+                {% for num, nombre in {
+                    '1':'Enero','2':'Febrero','3':'Marzo','4':'Abril',
+                    '5':'Mayo','6':'Junio','7':'Julio','8':'Agosto',
+                    '9':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'
+                }.items %}
+                    <option value="{{ num }}" {% if num == mes %}selected{% endif %}>{{ nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Filtrar</button>
+        </form>
+    </div>
+
+    {% if registros %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Equipo</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>RUT Operador</th>
+                    <th>Nombre Operador</th>
+                    <th>Horómetro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                    <tr>
+                        <td>{{ r.0|date:"d-m-Y" }}</td>
+                        <td>{{ r.1 }}</td>
+                        <td>{{ r.2 }}</td>
+                        <td>{{ r.3 }}</td>
+                        <td>{{ r.4 }}</td>
+                        <td>{{ r.5 }} {{ r.6 }}</td>
+                        <td>{{ r.7 }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif anio and mes %}
+        <p style="text-align:center;">⚠️ No hay registros para el período seleccionado.</p>
+    {% else %}
+        <p style="text-align:center;">Seleccione un año y mes para ver los registros.</p>
+    {% endif %}
+</div>
+</body>
+</html>

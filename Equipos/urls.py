@@ -2,6 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Muestra el formulario del horómetro para un equipo específico
-    path('equipo/<str:codigo>/', views.home, name='home'),
+    path('equipo/<str:codigo>/', views.home, name='home'), # Muestra el formulario del horómetro para un equipo específico
+    path('dashboard/', views.dashboard, name='dashboard'), # Muestra el "Dashboard" de datos ingresados en la BD.
 ]
