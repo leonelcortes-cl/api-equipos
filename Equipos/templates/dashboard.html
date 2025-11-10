@@ -96,8 +96,9 @@
             <th>Marca</th>
             <th>Modelo</th>
             {% for f in fechas %}
-              <th>{{ f|date:"d-m-Y" }}</th>
+              <th>{{ f|date:"d-m" }}</th>
             {% endfor %}
+
           </tr>
         </thead>
         <tbody>
