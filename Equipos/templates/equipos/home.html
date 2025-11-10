@@ -22,18 +22,29 @@
             padding: 25px;
             margin-top: 25px;
         }
+        /* 🟩 Mensajes de éxito */
         .success {
-            background-color: #dff0d8;
+            background-color: #d4edda;
             border: 1px solid #b2d8b2;
-            color: #3c763d;
+            color: #155724;
             padding: 12px;
             border-radius: 5px;
             margin-top: 15px;
         }
+        /* 🟥 Mensajes de error */
         .error {
-            background-color: #f2dede;
+            background-color: #f8d7da;
             border: 1px solid #e0b4b4;
-            color: #a94442;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        /* 🟨 Mensajes de advertencia */
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
             padding: 12px;
             border-radius: 5px;
             margin-top: 15px;
@@ -67,6 +78,7 @@
     {% if existe %}
         <h2><strong>Equipo {{ codigo }}</strong></h2>
         <p><strong>Detalle: </strong>{{ marca }}, {{ modelo }}</p>
+
         <div class="card">
             <h3>Ingresar lectura de horómetro</h3>
             <form method="POST">
@@ -77,18 +89,21 @@
             </form>
 
             {% if mensaje %}
-                {% if datos_registro %}
+                {% if "✅" in mensaje %}
                     <div class="success">
-                        <strong>✅ {{ mensaje }}</strong>
-                        <div class="datos">
-                            <p><strong>Operador:</strong> {{ datos_registro.nombre }} {{ datos_registro.apellidos }}</p>
-                            <p><strong>Equipo:</strong> {{ datos_registro.codigo }}</p>
-                            <p><strong>Horómetro:</strong> [{{ datos_registro.horometro }}]  =//=  <strong>[Fecha:</strong> {{ datos_registro.fecha }}]</p>
-                            <p></p>
-                        </div>
+                        <strong>{{ mensaje }}</strong>
+                        {% if datos_registro %}
+                            <div class="datos">
+                                <p><strong>Operador:</strong> {{ datos_registro.nombre }} {{ datos_registro.apellidos }}</p>
+                                <p><strong>Equipo:</strong> {{ datos_registro.codigo }}</p>
+                                <p><strong>[Horómetro:</strong> {{ datos_registro.horometro }}<strong>] =||= [Fecha:</strong> {{ datos_registro.fecha }}<strong>]</strong></p>
+                            </div>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <div class="error">{{ mensaje }}</div>
+                {% elif "⚠️" in mensaje %}
+                    <div class="warning"><strong>{{ mensaje }}</strong></div>
+                {% elif "❌" in mensaje %}
+                    <div class="error"><strong>{{ mensaje }}</strong></div>
                 {% endif %}
             {% endif %}
         </div>

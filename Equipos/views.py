@@ -2,6 +2,10 @@ from django.shortcuts import render
 from django.db import connection
 from datetime import date
 
+from django.shortcuts import render
+from django.db import connection
+from datetime import date
+
 def home(request, codigo):
     mensaje = None
     datos_registro = None
@@ -24,37 +28,56 @@ def home(request, codigo):
 
     # Si se envió el formulario (con RUT y horómetro)
     if request.method == "POST":
-        rut = request.POST.get("rut")
-        horometro = request.POST.get("horometro")
+        rut = request.POST.get("rut", "").strip()
+        horometro = request.POST.get("horometro", "").strip()
 
-        # Validar que el operador exista
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT dtTxt_Nombre, dtTxt_Apellidos
-                FROM tdOperadores
-                WHERE idNum_RUT = %s
-            """, [rut])
-            operador = cursor.fetchone()
-
-        if operador:
-            nombre, apellidos = operador
-            # Guardar el registro en tdHorometro
+        # ✅ Validación 1: campos vacíos
+        if not rut or not horometro:
+            mensaje = "⚠️ Debe ingresar el RUT y el valor del horómetro."
+        # ✅ Validación 2: horómetro debe ser numérico y no negativo
+        elif not horometro.isdigit() or int(horometro) < 0:
+            mensaje = "❌ Valor de horómetro inválido."
+        else:
+            # Validar que el operador exista
             with connection.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO tdHorometro (idTxt_Ppu, idNum_Rut, dtNum_Horometro, dtFec_Registro)
-                    VALUES (%s, %s, %s, %s)
-                """, [codigo, rut, horometro, date.today()])
+                    SELECT dtTxt_Nombre, dtTxt_Apellidos
+                    FROM tdOperadores
+                    WHERE idNum_RUT = %s
+                """, [rut])
+                operador = cursor.fetchone()
 
-            mensaje = "Registro guardado exitosamente."
-            datos_registro = {
-                "codigo": codigo,
-                "nombre": nombre,
-                "apellidos": apellidos,
-                "horometro": horometro,
-                "fecha": date.today().strftime("%d-%m-%Y")
-            }
-        else:
-            mensaje = "❌ RUT no autorizado para operar este equipo."
+            if operador:
+                nombre, apellidos = operador
+
+                # ✅ Validar que no exista un registro del mismo operador/equipo hoy
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM tdHorometro
+                        WHERE idTxt_Ppu = %s AND idNum_Rut = %s AND dtFec_Registro = %s
+                    """, [codigo, rut, date.today()])
+                    existe_registro = cursor.fetchone()[0] > 0
+
+                if existe_registro:
+                    mensaje = "⚠️ Ya existe un registro para este operador y equipo hoy."
+                else:
+                    # Guardar el registro en tdHorometro
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            INSERT INTO tdHorometro (idTxt_Ppu, idNum_Rut, dtNum_Horometro, dtFec_Registro)
+                            VALUES (%s, %s, %s, %s)
+                        """, [codigo, rut, int(horometro), date.today()])
+
+                    mensaje = "✅ Registro guardado exitosamente."
+                    datos_registro = {
+                        "codigo": codigo,
+                        "nombre": nombre,
+                        "apellidos": apellidos,
+                        "horometro": horometro,
+                        "fecha": date.today().strftime("%d-%m-%Y")
+                    }
+            else:
+                mensaje = "❌ RUT no autorizado para operar este equipo."
     
     return render(request, 'equipos/home.html', {
         'codigo': codigo,
@@ -64,6 +87,7 @@ def home(request, codigo):
         'mensaje': mensaje,
         'datos_registro': datos_registro
     })
+
 
 def dashboard(request):
     anio = request.GET.get('anio')
