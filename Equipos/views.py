@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.db import connection
-from datetime import datetime
+from datetime import date
 
 def home(request, codigo):
     mensaje = None
