@@ -86,7 +86,7 @@ def home(request, codigo):
 
 
 
-def dashboard_horometro(request):
+def dashboard(request):
     fecha_inicio = request.GET.get("fecha_inicio")
     fecha_fin = request.GET.get("fecha_fin")
     registros = []
