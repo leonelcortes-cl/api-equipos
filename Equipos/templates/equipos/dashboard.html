@@ -1,110 +1,71 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard de Horómetros</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: white;
-            color: black;
-            margin: 40px;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 25px;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f8f8f8;
-        }
-        .filter {
-            margin-bottom: 20px;
-            background-color: #f3f3f3;
-            padding: 15px;
-            border-radius: 6px;
-        }
-        select, button {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        h2 {
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Registros de Horómetro</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f3f4f6; padding: 40px; text-align: center; }
+    h1 { color: #333; margin-bottom: 30px; }
+    form { background: white; padding: 20px; display: inline-block; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    select, button { margin: 5px; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #007bff; color: white; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    table { margin: 0 auto; border-collapse: collapse; width: 90%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+    th { background: #007bff; color: white; }
+    tr:hover { background: #f1f1f1; }
+    .no-data { color: #555; background: #fff3cd; padding: 15px; display: inline-block; border-radius: 8px; margin-top: 20px; }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h2>📊 Dashboard de Horómetros</h2>
+  <h1>📊 Dashboard de Registros de Horómetro</h1>
 
-    <div class="filter">
-        <form method="GET">
-            <label>Año:</label>
-            <select name="anio" required>
-                <option value="">Seleccione año</option>
-                {% for y in "2023,2024,2025,2026".split(',') %}
-                    <option value="{{ y }}" {% if y == anio %}selected{% endif %}>{{ y }}</option>
-                {% endfor %}
-            </select>
+  <form method="get">
+    <label>Año:</label>
+    <select name="anio" required>
+      <option value="">Seleccione año</option>
+      {% for y in anios %}
+        <option value="{{ y }}" {% if y|stringformat:"s" == anio %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
 
-            <label>Mes:</label>
-            <select name="mes" required>
-                <option value="">Seleccione mes</option>
-                {% for num, nombre in {
-                    '1':'Enero','2':'Febrero','3':'Marzo','4':'Abril',
-                    '5':'Mayo','6':'Junio','7':'Julio','8':'Agosto',
-                    '9':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'
-                }.items %}
-                    <option value="{{ num }}" {% if num == mes %}selected{% endif %}>{{ nombre }}</option>
-                {% endfor %}
-            </select>
+    <label>Mes:</label>
+    <select name="mes" required>
+      <option value="">Seleccione mes</option>
+      {% for num, nombre in meses.items %}
+        <option value="{{ num }}" {% if num|stringformat:"s" == mes %}selected{% endif %}>{{ nombre }}</option>
+      {% endfor %}
+    </select>
 
-            <button type="submit">Filtrar</button>
-        </form>
-    </div>
+    <button type="submit">Filtrar</button>
+  </form>
 
-    {% if registros %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Equipo</th>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>RUT Operador</th>
-                    <th>Nombre Operador</th>
-                    <th>Horómetro</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in registros %}
-                    <tr>
-                        <td>{{ r.0|date:"d-m-Y" }}</td>
-                        <td>{{ r.1 }}</td>
-                        <td>{{ r.2 }}</td>
-                        <td>{{ r.3 }}</td>
-                        <td>{{ r.4 }}</td>
-                        <td>{{ r.5 }} {{ r.6 }}</td>
-                        <td>{{ r.7 }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% elif anio and mes %}
-        <p style="text-align:center;">⚠️ No hay registros para el período seleccionado.</p>
-    {% else %}
-        <p style="text-align:center;">Seleccione un año y mes para ver los registros.</p>
-    {% endif %}
-</div>
+  {% if registros %}
+    <table>
+      <thead>
+        <tr>
+          <th>Equipo (PPU)</th>
+          <th>RUT</th>
+          <th>Operador</th>
+          <th>Horómetro</th>
+          <th>Fecha de Registro</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in registros %}
+          <tr>
+            <td>{{ r.0 }}</td>
+            <td>{{ r.1 }}</td>
+            <td>{{ r.4 }} {{ r.5 }}</td>
+            <td>{{ r.2 }}</td>
+            <td>{{ r.3 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif anio and mes %}
+    <div class="no-data">⚠️ No se encontraron registros para {{ meses|dictsort:0|get_item:mes }} de {{ anio }}.</div>
+  {% endif %}
 </body>
 </html>
