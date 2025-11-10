@@ -1,8 +1,12 @@
 from django.shortcuts import render
 from django.db import connection
+from datetime import date
 
 def home(request, codigo):
-    # Buscar el equipo por su código (idTxt_Ppu)
+    mensaje = None
+    datos_registro = None
+
+    # Buscar equipo por su código (idTxt_Ppu)
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT dtTxt_Marca, dtTxt_Modelo
@@ -11,26 +15,19 @@ def home(request, codigo):
         """, [codigo])
         equipo = cursor.fetchone()
 
-    if not equipo:
-        # Si el equipo no existe
-        return render(request, 'equipos/home.html', {
-            'codigo': codigo,
-            'existe': False
-        })
+    if equipo:
+        marca, modelo = equipo
+        existe = True
+    else:
+        marca = modelo = None
+        existe = False
 
-    # Desempaquetar los valores de la tupla
-    marca, modelo = equipo
-    mensaje = None
-    autorizado = None
-    nombre = None
-    apellidos = None
-
-    # Si el usuario envía el formulario
+    # Si se envió el formulario (con RUT y horómetro)
     if request.method == "POST":
-        rut = request.POST.get('rut')
-        horometro = request.POST.get('horometro')
+        rut = request.POST.get("rut")
+        horometro = request.POST.get("horometro")
 
-        # Validar el RUT en la tabla de operadores
+        # Validar que el operador exista
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT dtTxt_Nombre, dtTxt_Apellidos
@@ -41,20 +38,29 @@ def home(request, codigo):
 
         if operador:
             nombre, apellidos = operador
-            autorizado = True
-            mensaje = f"✅ Operador autorizado: {nombre} {apellidos}"
-        else:
-            autorizado = False
-            mensaje = f"❌ RUT {rut} no está autorizado para operar este equipo."
+            # Guardar el registro en tdHorometro
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO tdHorometro (idTxt_Ppu, idNum_Rut, dtNum_Horometro, dtFec_Registro)
+                    VALUES (%s, %s, %s, %s)
+                """, [codigo, rut, horometro, date.today()])
 
-    # Renderizar la vista con toda la información
+            mensaje = "Registro guardado exitosamente."
+            datos_registro = {
+                "codigo": codigo,
+                "nombre": nombre,
+                "apellidos": apellidos,
+                "horometro": horometro,
+                "fecha": date.today().strftime("%d-%m-%Y")
+            }
+        else:
+            mensaje = "❌ RUT no autorizado para operar este equipo."
+    
     return render(request, 'equipos/home.html', {
         'codigo': codigo,
         'marca': marca,
         'modelo': modelo,
-        'existe': True,
-        'autorizado': autorizado,
+        'existe': existe,
         'mensaje': mensaje,
-        'nombre': nombre,
-        'apellidos': apellidos
+        'datos_registro': datos_registro
     })
