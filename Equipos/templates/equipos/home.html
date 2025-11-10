@@ -65,19 +65,16 @@
 <body>
 <div class="container">
     {% if existe %}
-        <h2>Equipo {{ codigo }}</h2>
-        <p><strong>Marca:</strong> {{ marca }}</p>
-        <p><strong>Modelo:</strong> {{ modelo }}</p>
-
+        <h2>Equipo: <strong>{{ codigo }}</strong></h2>
+        <p> {{ marca }}, {{ modelo }}</p>
         <div class="card">
             <h3>Ingresar lectura de horómetro</h3>
             <form method="POST">
                 {% csrf_token %}
-                <input type="text" name="rut" placeholder="Ingrese RUT del operador" required><br>
+                <input type="text" name="rut" placeholder="Ingrese su RUT (Sin dígito)" required><br>
                 <input type="number" name="horometro" placeholder="Lectura horómetro" required><br>
                 <button type="submit">Registrar</button>
             </form>
-
             {% if mensaje %}
                 {% if datos_registro %}
                     <div class="success">
