@@ -84,28 +84,28 @@ def home(request, codigo):
         'datos_registro': datos_registro
     })
 
-from django.shortcuts import render
-from django.db import connection
-from datetime import datetime, timedelta
 
-def dashboard(request):
-    fecha_inicio = request.GET.get('inicio')
-    fecha_fin = request.GET.get('fin')
+
+def dashboard_horometro(request):
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
     registros = []
-    columnas_fechas = []
-    tabla = []
+    fechas = []
 
     if fecha_inicio and fecha_fin:
         try:
-            # Convertir fechas a objetos datetime
-            inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
-            fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+            inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+            fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
 
-            # Obtener todas las fechas del rango
-            columnas_fechas = [(inicio + timedelta(days=i)) for i in range((fin - inicio).days + 1)]
+            if inicio > fin:
+                mensaje = "⚠️ La fecha de inicio no puede ser mayor que la fecha final."
+                return render(request, "dashboard.html", {"mensaje": mensaje})
+
+            # Generar lista de fechas del rango
+            delta = (fin - inicio).days
+            fechas = [(inicio + timedelta(days=i)) for i in range(delta + 1)]
 
             with connection.cursor() as cursor:
-                # Obtener todos los equipos con sus lecturas dentro del rango
                 cursor.execute("""
                     SELECT h.idTxt_Ppu, e.dtTxt_Marca, e.dtTxt_Modelo, h.dtFec_Registro, h.dtNum_Horometro
                     FROM tdHorometro h
@@ -113,35 +113,33 @@ def dashboard(request):
                     WHERE h.dtFec_Registro BETWEEN %s AND %s
                     ORDER BY h.idTxt_Ppu, h.dtFec_Registro
                 """, [inicio, fin])
-                registros = cursor.fetchall()
+                data = cursor.fetchall()
 
-            # Reorganizar registros en formato {ppu: {fecha: horometro}}
-            data_por_equipo = {}
-            for ppu, marca, modelo, fecha, horometro in registros:
-                if ppu not in data_por_equipo:
-                    data_por_equipo[ppu] = {
-                        'marca': marca,
-                        'modelo': modelo,
-                        'lecturas': {}
-                    }
-                data_por_equipo[ppu]['lecturas'][fecha] = horometro
+            # Organizar datos por PPU
+            equipos = {}
+            for ppu, marca, modelo, fecha, horometro in data:
+                if ppu not in equipos:
+                    equipos[ppu] = {"marca": marca, "modelo": modelo, "horometros": {}}
+                equipos[ppu]["horometros"][fecha] = horometro
 
-            # Construir la tabla final
-            for ppu, datos in data_por_equipo.items():
-                fila = [ppu, datos['marca'], datos['modelo']]
-                for fecha in columnas_fechas:
-                    valor = datos['lecturas'].get(fecha)
-                    fila.append(valor if valor is not None else "")
-                tabla.append(fila)
+            # Estructurar datos para tabla
+            registros = [
+                {
+                    "ppu": ppu,
+                    "marca": info["marca"],
+                    "modelo": info["modelo"],
+                    "valores": [info["horometros"].get(f, "") for f in fechas],
+                }
+                for ppu, info in equipos.items()
+            ]
 
-        except ValueError:
-            registros = []
-            columnas_fechas = []
-            tabla = []
+        except Exception as e:
+            return render(request, "dashboard.html", {"mensaje": f"❌ Error al procesar: {e}"})
 
-    return render(request, 'equipos/dashboard.html', {
-        'tabla': tabla,
-        'columnas_fechas': columnas_fechas,
-        'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin
-    })
+    context = {
+        "fechas": fechas,
+        "registros": registros,
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+    }
+    return render(request, "dashboard.html", context)

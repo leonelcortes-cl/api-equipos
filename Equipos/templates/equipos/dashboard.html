@@ -5,54 +5,119 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard de Horómetros</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f3f4f6; padding: 40px; text-align: center; }
-    h1 { color: #333; margin-bottom: 30px; }
-    form { background: white; padding: 20px; display: inline-block; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    input, button { margin: 5px; padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc; }
-    button { background: #007bff; color: white; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    table { margin: 0 auto; border-collapse: collapse; width: 95%; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-    th { background: #007bff; color: white; position: sticky; top: 0; }
-    tr:hover { background: #f1f1f1; }
-    .no-data { color: #555; background: #fff3cd; padding: 15px; display: inline-block; border-radius: 8px; margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 30px;
+      text-align: center;
+      font-size: 12px; /* reducido al 50% aprox */
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    form {
+      background: white;
+      display: inline-block;
+      padding: 15px 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    input, button {
+      margin: 5px;
+      padding: 6px;
+      font-size: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 5px;
+      text-align: center;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    tr:hover {
+      background: #f1f1f1;
+    }
+    .mensaje {
+      color: #b33;
+      background: #ffe4e4;
+      padding: 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 20px;
+    }
+    .empty-cell { color: #bbb; }
   </style>
 </head>
 <body>
-  <h1>📊 Dashboard de Horómetros</h1>
+  <h1>📅 Dashboard de Horómetros</h1>
 
   <form method="get">
     <label>Desde:</label>
-    <input type="date" name="inicio" value="{{ fecha_inicio }}" required>
+    <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" required>
     <label>Hasta:</label>
-    <input type="date" name="fin" value="{{ fecha_fin }}" required>
+    <input type="date" name="fecha_fin" value="{{ fecha_fin }}" required>
     <button type="submit">Filtrar</button>
   </form>
 
-  {% if tabla %}
-    <table>
-      <thead>
-        <tr>
-          <th>PPU</th>
-          <th>Marca</th>
-          <th>Modelo</th>
-          {% for fecha in columnas_fechas %}
-            <th>{{ fecha|date:"d-m-Y" }}</th>
-          {% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for fila in tabla %}
+  {% if mensaje %}
+    <div class="mensaje">{{ mensaje }}</div>
+  {% endif %}
+
+  {% if registros %}
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
           <tr>
-            {% for valor in fila %}
-              <td>{{ valor }}</td>
+            <th>PPU</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            {% for f in fechas %}
+              <th>{{ f|date:"d-m-Y" }}</th>
             {% endfor %}
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% for r in registros %}
+            <tr>
+              <td>{{ r.ppu }}</td>
+              <td>{{ r.marca }}</td>
+              <td>{{ r.modelo }}</td>
+              {% for v in r.valores %}
+                <td class="{% if not v %}empty-cell{% endif %}">
+                  {% if v %}{{ v }}{% else %}–{% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   {% elif fecha_inicio and fecha_fin %}
-    <div class="no-data">⚠️ No hay registros en el rango seleccionado.</div>
+    <div class="mensaje">⚠️ No se encontraron registros en el rango seleccionado.</div>
   {% endif %}
 </body>
 </html>
