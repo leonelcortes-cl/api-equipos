@@ -54,6 +54,12 @@
     .empty-cell { color: #bbb; }
     .alerta-cercana { background-color: #fff3cd; }  /* Amarillo */
     .alerta-vencida { background-color: #f8d7da; }  /* Rojo */
+    
+    .warning {
+      background-color: #ffcc80; /* Naranja suave */
+      font-weight: bold;
+    }
+
   </style>
 </head>
 <body>
@@ -91,13 +97,13 @@
               <td>{{ r.ppu }}</td>
               <td>{{ r.marca }}</td>
               <td>{{ r.modelo }}</td>
-              <td class="
-                {% if r.alerta == 'cercana' %}alerta-cercana{% elif r.alerta == 'vencida' %}alerta-vencida{% endif %}
-              ">
-                {% if r.prox_mant %}{{ r.prox_mant }}{% else %}–{% endif %}
+              <td class="{% if r.alerta %}warning{% endif %}">
+                {{ r.prox_mant }}
               </td>
               {% for v in r.valores %}
-                <td class="{% if not v %}empty-cell{% endif %}">{% if v %}{{ v }}{% else %}–{% endif %}</td>
+                <td class="{% if not v %}empty-cell{% endif %}">
+                  {% if v %}{{ v }}{% else %}–{% endif %}
+                </td>
               {% endfor %}
             </tr>
           {% endfor %}

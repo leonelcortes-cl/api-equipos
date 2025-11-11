@@ -104,50 +104,63 @@ def dashboard(request):
             delta = (fin - inicio).days
             fechas = [(inicio + timedelta(days=i)) for i in range(delta + 1)]
 
-            # 🔹 Consultar horómetros
             with connection.cursor() as cursor:
+                # Obtener datos de horómetro + datos del equipo + próxima mantención
                 cursor.execute("""
-                    SELECT h.idTxt_Ppu, e.dtTxt_Marca, e.dtTxt_Modelo, h.dtFec_Registro, h.dtNum_Horometro
+                    SELECT 
+                        h.idTxt_Ppu,
+                        e.dtTxt_Marca,
+                        e.dtTxt_Modelo,
+                        h.dtFec_Registro,
+                        h.dtNum_Horometro,
+                        m.dtNum_Proximo
                     FROM tdHorometro h
                     JOIN tdEquipos e ON h.idTxt_Ppu = e.idTxt_Ppu
+                    LEFT JOIN tdMantenciones m ON h.idTxt_Ppu = m.idTxt_Ppu
                     WHERE h.dtFec_Registro BETWEEN %s AND %s
                     ORDER BY h.idTxt_Ppu, h.dtFec_Registro
                 """, [inicio, fin])
                 data = cursor.fetchall()
 
-            # 🔹 Consultar próximas mantenciones
-            with connection.cursor() as cursor:
+                # Obtener último horómetro de cada equipo
                 cursor.execute("""
-                    SELECT idTxt_Ppu, dtNum_Proximo
-                    FROM tdMantenciones
+                    SELECT h1.idTxt_Ppu, h1.dtNum_Horometro
+                    FROM tdHorometro h1
+                    INNER JOIN (
+                        SELECT idTxt_Ppu, MAX(dtFec_Registro) AS ultima
+                        FROM tdHorometro
+                        GROUP BY idTxt_Ppu
+                    ) h2 ON h1.idTxt_Ppu = h2.idTxt_Ppu AND h1.dtFec_Registro = h2.ultima
                 """)
-                mantenciones = dict(cursor.fetchall())
+                ultimos = dict(cursor.fetchall())
 
-            # Organizar datos
+            # Organizar datos por equipo
             equipos = {}
-            for ppu, marca, modelo, fecha, horometro in data:
+            for ppu, marca, modelo, fecha, horometro, prox_mant in data:
                 if ppu not in equipos:
-                    equipos[ppu] = {"marca": marca, "modelo": modelo, "horometros": {}, "prox_mant": mantenciones.get(ppu)}
+                    equipos[ppu] = {
+                        "marca": marca,
+                        "modelo": modelo,
+                        "prox_mant": prox_mant,
+                        "horometros": {}
+                    }
                 equipos[ppu]["horometros"][fecha] = horometro
 
-            # Estructurar registros
+            # Estructurar datos para tabla
             registros = []
             for ppu, info in equipos.items():
-                prox = info["prox_mant"]
-                ultimo = max(info["horometros"].values()) if info["horometros"] else None
-                alerta = None
-                if prox and ultimo:
-                    diff = prox - ultimo
-                    if diff <= 0:
-                        alerta = "vencida"  # rojo
-                    elif diff <= 50:
-                        alerta = "cercana"  # amarilla
+                prox_mant = info["prox_mant"]
+                ultimo_horo = ultimos.get(ppu)
+                alerta = False
+                if prox_mant and ultimo_horo:
+                    if prox_mant - ultimo_horo <= 50:
+                        alerta = True
 
                 registros.append({
                     "ppu": ppu,
                     "marca": info["marca"],
                     "modelo": info["modelo"],
-                    "prox_mant": prox,
+                    "prox_mant": prox_mant if prox_mant else "-",
                     "alerta": alerta,
                     "valores": [info["horometros"].get(f, "") for f in fechas],
                 })
