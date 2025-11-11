@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.db import connection
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 def home(request, codigo):
     mensaje = None
@@ -46,7 +46,7 @@ def home(request, codigo):
             if operador:
                 nombre, apellidos = operador
 
-                # ✅ Validar que no exista un registro del mismo operador/equipo hoy
+                # ✅ Validar que no exista un registro del mismo equipo hoy
                 with connection.cursor() as cursor:
                     cursor.execute("""
                         SELECT COUNT(*) FROM tdHorometro
@@ -85,7 +85,6 @@ def home(request, codigo):
     })
 
 
-
 def dashboard(request):
     fecha_inicio = request.GET.get("fecha_inicio")
     fecha_fin = request.GET.get("fecha_fin")
@@ -105,6 +104,7 @@ def dashboard(request):
             delta = (fin - inicio).days
             fechas = [(inicio + timedelta(days=i)) for i in range(delta + 1)]
 
+            # 🔹 Consultar horómetros
             with connection.cursor() as cursor:
                 cursor.execute("""
                     SELECT h.idTxt_Ppu, e.dtTxt_Marca, e.dtTxt_Modelo, h.dtFec_Registro, h.dtNum_Horometro
@@ -115,23 +115,42 @@ def dashboard(request):
                 """, [inicio, fin])
                 data = cursor.fetchall()
 
-            # Organizar datos por PPU
+            # 🔹 Consultar próximas mantenciones
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT idTxt_Ppu, dtNum_Proximo
+                    FROM tdMantenciones
+                """)
+                mantenciones = dict(cursor.fetchall())
+
+            # Organizar datos
             equipos = {}
             for ppu, marca, modelo, fecha, horometro in data:
                 if ppu not in equipos:
-                    equipos[ppu] = {"marca": marca, "modelo": modelo, "horometros": {}}
+                    equipos[ppu] = {"marca": marca, "modelo": modelo, "horometros": {}, "prox_mant": mantenciones.get(ppu)}
                 equipos[ppu]["horometros"][fecha] = horometro
 
-            # Estructurar datos para tabla
-            registros = [
-                {
+            # Estructurar registros
+            registros = []
+            for ppu, info in equipos.items():
+                prox = info["prox_mant"]
+                ultimo = max(info["horometros"].values()) if info["horometros"] else None
+                alerta = None
+                if prox and ultimo:
+                    diff = prox - ultimo
+                    if diff <= 0:
+                        alerta = "vencida"  # rojo
+                    elif diff <= 50:
+                        alerta = "cercana"  # amarilla
+
+                registros.append({
                     "ppu": ppu,
                     "marca": info["marca"],
                     "modelo": info["modelo"],
+                    "prox_mant": prox,
+                    "alerta": alerta,
                     "valores": [info["horometros"].get(f, "") for f in fechas],
-                }
-                for ppu, info in equipos.items()
-            ]
+                })
 
         except Exception as e:
             return render(request, "dashboard.html", {"mensaje": f"❌ Error al procesar: {e}"})

@@ -10,12 +10,9 @@
       background: #f4f6f8;
       padding: 30px;
       text-align: center;
-      font-size: 12px; /* reducido al 50% aprox */
+      font-size: 12px;
     }
-    h1 {
-      color: #333;
-      margin-bottom: 20px;
-    }
+    h1 { color: #333; margin-bottom: 20px; }
     form {
       background: white;
       display: inline-block;
@@ -36,9 +33,7 @@
       color: white;
       cursor: pointer;
     }
-    button:hover {
-      background: #0056b3;
-    }
+    button:hover { background: #0056b3; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -51,25 +46,14 @@
       border: 1px solid #ddd;
       padding: 5px;
       text-align: center;
-      font-size: 11px;
+      font-size: 9px;
       white-space: nowrap;
     }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    tr:hover {
-      background: #f1f1f1;
-    }
-    .mensaje {
-      color: #b33;
-      background: #ffe4e4;
-      padding: 10px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-top: 20px;
-    }
+    th { background: #007bff; color: white; }
+    tr:hover { background: #f1f1f1; }
     .empty-cell { color: #bbb; }
+    .alerta-cercana { background-color: #fff3cd; }  /* Amarillo */
+    .alerta-vencida { background-color: #f8d7da; }  /* Rojo */
   </style>
 </head>
 <body>
@@ -95,10 +79,10 @@
             <th>PPU</th>
             <th>Marca</th>
             <th>Modelo</th>
+            <th>Prox. Mant</th>
             {% for f in fechas %}
               <th>{{ f|date:"d-m" }}</th>
             {% endfor %}
-
           </tr>
         </thead>
         <tbody>
@@ -107,10 +91,13 @@
               <td>{{ r.ppu }}</td>
               <td>{{ r.marca }}</td>
               <td>{{ r.modelo }}</td>
+              <td class="
+                {% if r.alerta == 'cercana' %}alerta-cercana{% elif r.alerta == 'vencida' %}alerta-vencida{% endif %}
+              ">
+                {% if r.prox_mant %}{{ r.prox_mant }}{% else %}–{% endif %}
+              </td>
               {% for v in r.valores %}
-                <td class="{% if not v %}empty-cell{% endif %}">
-                  {% if v %}{{ v }}{% else %}–{% endif %}
-                </td>
+                <td class="{% if not v %}empty-cell{% endif %}">{% if v %}{{ v }}{% else %}–{% endif %}</td>
               {% endfor %}
             </tr>
           {% endfor %}
