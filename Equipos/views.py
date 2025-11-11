@@ -75,7 +75,7 @@ def home(request, codigo):
             else:
                 mensaje = "❌ RUT no autorizado para operar este equipo."
     
-    return render(request, 'equipos/home.html', {
+    return render(request, 'home.html', {
         'codigo': codigo,
         'marca': marca,
         'modelo': modelo,
