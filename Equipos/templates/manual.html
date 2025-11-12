@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro Manual de Horómetro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f5f7;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 450px;
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 25px 30px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #004a7c;
+      margin-bottom: 25px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="text"], input[type="number"] {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border 0.2s ease;
+    }
+
+    input:focus {
+      border-color: #0077b6;
+      outline: none;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0077b6;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #005f87;
+    }
+
+    .mensaje {
+      text-align: center;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .mensaje.ok {
+      background: #d1f7d1;
+      color: #0a6b0a;
+    }
+
+    .mensaje.error {
+      background: #ffd9d9;
+      color: #a30000;
+    }
+
+    .resultado {
+      margin-top: 25px;
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+
+    .resultado p {
+      margin: 6px 0;
+    }
+
+    .volver {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .volver a {
+      text-decoration: none;
+      color: #0077b6;
+      font-weight: bold;
+    }
+
+    .volver a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Registro Manual de Horómetro</h2>
+
+    <form method="POST">
+      {% csrf_token %}
+      <label for="codigo">Código del Equipo (PPU)</label>
+      <input type="text" id="codigo" name="codigo" placeholder="Ej: BKFG42" value="{{ request.POST.codigo|default:'' }}" required>
+
+      <label for="rut">RUT del Operador</label>
+      <input type="text" id="rut" name="rut" placeholder="Ej: 12345678-9" value="{{ request.POST.rut|default:'' }}" required>
+
+      <label for="horometro">Valor Horómetro</label>
+      <input type="number" id="horometro" name="horometro" placeholder="Ej: 2548" value="{{ request.POST.horometro|default:'' }}" required>
+
+      <button type="submit">Guardar Registro</button>
+    </form>
+
+    {% if mensaje %}
+      <div class="mensaje {% if '✅' in mensaje %}ok{% else %}error{% endif %}">
+        {{ mensaje }}
+      </div>
+    {% endif %}
+
+    {% if datos_registro %}
+      <div class="resultado">
+        <h4>Registro Guardado</h4>
+        <p><strong>Código:</strong> {{ datos_registro.codigo }}</p>
+        <p><strong>Operador:</strong> {{ datos_registro.nombre }} {{ datos_registro.apellidos }}</p>
+        <p><strong>Horómetro:</strong> {{ datos_registro.horometro }}</p>
+        <p><strong>Fecha:</strong> {{ datos_registro.fecha }}</p>
+
+        {% if marca and modelo %}
+          <p><strong>Equipo:</strong> {{ marca }} {{ modelo }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="volver">
+      <a href="/">← Volver al inicio</a>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -84,6 +84,87 @@ def home(request, codigo):
         'datos_registro': datos_registro
     })
 
+def registro_manual(request):
+    mensaje = None
+    datos_registro = None
+    marca = modelo = None
+    existe = False
+
+    if request.method == "POST":
+        codigo = request.POST.get("codigo", "").strip().upper()
+        rut = request.POST.get("rut", "").strip()
+        horometro = request.POST.get("horometro", "").strip()
+
+        # ✅ Validación 1: campos vacíos
+        if not codigo or not rut or not horometro:
+            mensaje = "⚠️ Debe ingresar el código del equipo, el RUT y el valor del horómetro."
+        # ✅ Validación 2: horómetro debe ser numérico y no negativo
+        elif not horometro.isdigit() or int(horometro) < 0:
+            mensaje = "❌ Valor de horómetro inválido."
+        else:
+            # Buscar equipo
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT dtTxt_Marca, dtTxt_Modelo
+                    FROM tdEquipos
+                    WHERE idTxt_Ppu = %s
+                """, [codigo])
+                equipo = cursor.fetchone()
+
+            if equipo:
+                marca, modelo = equipo
+                existe = True
+
+                # Validar operador
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT dtTxt_Nombre, dtTxt_Apellidos
+                        FROM tdOperadores
+                        WHERE idNum_RUT = %s
+                    """, [rut])
+                    operador = cursor.fetchone()
+
+                if operador:
+                    nombre, apellidos = operador
+
+                    # Validar que no exista un registro del mismo equipo hoy
+                    with connection.cursor() as cursor:
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM tdHorometro
+                            WHERE idTxt_Ppu = %s AND dtFec_Registro = %s
+                        """, [codigo, date.today()])
+                        existe_registro = cursor.fetchone()[0] > 0
+
+                    if existe_registro:
+                        mensaje = "⚠️ Ya existe un registro para este equipo hoy."
+                    else:
+                        # Guardar registro
+                        with connection.cursor() as cursor:
+                            cursor.execute("""
+                                INSERT INTO tdHorometro (idTxt_Ppu, idNum_Rut, dtNum_Horometro, dtFec_Registro)
+                                VALUES (%s, %s, %s, %s)
+                            """, [codigo, rut, int(horometro), date.today()])
+
+                        mensaje = "✅ Registro guardado exitosamente."
+                        datos_registro = {
+                            "codigo": codigo,
+                            "nombre": nombre,
+                            "apellidos": apellidos,
+                            "horometro": horometro,
+                            "fecha": date.today().strftime("%d-%m-%Y")
+                        }
+                else:
+                    mensaje = "❌ RUT no autorizado para operar este equipo."
+            else:
+                mensaje = "❌ No existe un equipo con ese código."
+
+    return render(request, 'manual.html', {
+        'mensaje': mensaje,
+        'datos_registro': datos_registro,
+        'existe': existe,
+        'marca': marca,
+        'modelo': modelo
+    })
 
 def dashboard(request):
     fecha_inicio = request.GET.get("fecha_inicio")
