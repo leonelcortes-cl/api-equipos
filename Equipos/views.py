@@ -270,7 +270,7 @@ def dashboard(request):
     }
     return render(request, "dashboard.html", context)
 
-DOMINIO = "https://www.sonlinn.cl/codigo/"
+DOMINIO = "https://api-equipos-ljq4.onrender.com/codigo/"
 
 def generar_qr(request):
     mensaje = ""
