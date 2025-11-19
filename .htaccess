@@ -1,0 +1,5 @@
+PassengerEnabled on
+PassengerAppRoot /home/cso60906/app.solinn.cl
+PassengerPython /home/cso60906/virtualenv/app.solinn.cl/3.13/bin/python
+PassengerStartupFile passenger_wsgi.py
+PassengerAppType wsgi

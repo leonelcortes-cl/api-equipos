@@ -1,0 +1,24 @@
+<!-- generar_qr.html -->
+<h1>Generar QR</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label>Código de 7 caracteres:</label>
+    <input type="text" name="codigo" maxlength="7">
+    <br><br>
+    <label>O subir Excel:</label>
+    <input type="file" name="excel" accept=".xlsx">
+    <br><br>
+    <button type="submit">Generar QR</button>
+</form>
+
+{% if mensaje %}
+    <p>{{ mensaje }}</p>
+{% endif %}
+
+<h2>QR Generados:</h2>
+<ul>
+{% for qr in qr_list %}
+    <li>{{ qr.codigo }} - <img src="{{ qr.qr_image.url }}" width="100"></li>
+{% endfor %}
+</ul>

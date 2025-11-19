@@ -1,6 +1,11 @@
 from django.shortcuts import render
 from django.db import connection
 from datetime import datetime, timedelta, date
+from django.http import HttpResponse
+import qrcode
+from io import BytesIO
+import openpyxl
+from .models import QRCode
 
 def home(request, codigo):
     mensaje = None
@@ -203,7 +208,7 @@ def dashboard(request):
                 """, [inicio, fin])
                 data = cursor.fetchall()
 
-                # Obtener último horómetro de cada equipo
+                # Obtener último horómetro por equipo (parche seguro)
                 cursor.execute("""
                     SELECT h1.idTxt_Ppu, h1.dtNum_Horometro
                     FROM tdHorometro h1
@@ -213,7 +218,14 @@ def dashboard(request):
                         GROUP BY idTxt_Ppu
                     ) h2 ON h1.idTxt_Ppu = h2.idTxt_Ppu AND h1.dtFec_Registro = h2.ultima
                 """)
-                ultimos = dict(cursor.fetchall())
+
+                ultimos_raw = cursor.fetchall()
+                ultimos = {}
+
+                # Parche para evitar errores de None + drivers de cPanel
+                for row in ultimos_raw:
+                    if row and row[0] is not None and row[1] is not None:
+                        ultimos[row[0]] = row[1]
 
             # Organizar datos por equipo
             equipos = {}
@@ -233,6 +245,7 @@ def dashboard(request):
                 prox_mant = info["prox_mant"]
                 ultimo_horo = ultimos.get(ppu)
                 alerta = False
+
                 if prox_mant and ultimo_horo:
                     if prox_mant - ultimo_horo <= 50:
                         alerta = True
@@ -247,7 +260,7 @@ def dashboard(request):
                 })
 
         except Exception as e:
-            return render(request, "dashboard.html", {"mensaje": f"❌ Error al procesar: {e}"})
+            return render(request, "dashboard.html", {"mensaje": f"❌ Error procesando: {e}"})
 
     context = {
         "fechas": fechas,
@@ -256,3 +269,55 @@ def dashboard(request):
         "fecha_fin": fecha_fin,
     }
     return render(request, "dashboard.html", context)
+
+DOMINIO = "https://www.sonlinn.cl/codigo/"
+
+def generar_qr(request):
+    mensaje = ""
+    if request.method == "POST":
+        # Procesar código único
+        codigo = request.POST.get("codigo", "").upper()
+        if len(codigo) != 7:
+            mensaje = "El código debe tener 7 caracteres"
+        else:
+            url = f"{DOMINIO}{codigo}"
+            # Generar QR
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(url)
+            qr.make(fit=True)
+            img = qr.make_image(fill="black", back_color="white")
+
+            # Guardar en memoria y luego en modelo
+            buffer = BytesIO()
+            img.save(buffer, "PNG")
+            buffer.seek(0)
+
+            # Guardar en modelo
+            qr_obj, created = QRCode.objects.get_or_create(codigo=codigo)
+            qr_obj.qr_image.save(f"{codigo}.png", buffer, save=True)
+            mensaje = f"QR generado para {url}"
+
+        # Procesar Excel
+        if 'excel' in request.FILES:
+            archivo = request.FILES['excel']
+            wb = openpyxl.load_workbook(archivo)
+            sheet = wb.active
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                codigo_excel = str(row[0]).upper()
+                if len(codigo_excel) == 7:
+                    url_excel = f"{DOMINIO}{codigo_excel}"
+                    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+                    qr.add_data(url_excel)
+                    qr.make(fit=True)
+                    img = qr.make_image(fill="black", back_color="white")
+                    buffer = BytesIO()
+                    img.save(buffer, "PNG")
+                    buffer.seek(0)
+                    qr_obj, created = QRCode.objects.get_or_create(codigo=codigo_excel)
+                    qr_obj.qr_image.save(f"{codigo_excel}.png", buffer, save=True)
+            mensaje += " | QR desde Excel generados"
+
+    qr_list = QRCode.objects.all()
+    return render(request, "generar_qr.html", {"mensaje": mensaje, "qr_list": qr_list})
+
+    # return render(request, "generar_qr.html", {"mensaje": mensaje})

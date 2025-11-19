@@ -10,8 +10,8 @@ config = {
     'database': 'cso60906_Equipos'
 }
 
-excel_file = 'proximo.xlsx'
-table_name = 'tdMantenciones'
+excel_file = 'operadores.xlsx'
+table_name = 'tdOperadores'
 
 try:
     # Leer el Excel
