@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.db import connection
 from datetime import datetime, timedelta, date
+"""
 from django.http import HttpResponse
 import qrcode
 from io import BytesIO
 import openpyxl
 from .models import QRCode
+"""
 
 def home(request, codigo):
     mensaje = None
@@ -270,6 +272,7 @@ def dashboard(request):
     }
     return render(request, "dashboard.html", context)
 
+"""
 DOMINIO = "https://api-equipos-ljq4.onrender.com/codigo/"
 
 def generar_qr(request):
@@ -321,3 +324,4 @@ def generar_qr(request):
     return render(request, "generar_qr.html", {"mensaje": mensaje, "qr_list": qr_list})
 
     # return render(request, "generar_qr.html", {"mensaje": mensaje})
+"""
