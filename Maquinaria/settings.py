@@ -80,12 +80,13 @@ WSGI_APPLICATION = 'Maquinaria.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql.connector.django',  # o 'django.db.backends.mysql'
-        'NAME': 'cso60906_equipos',
-        'USER': 'root',
-        'PASSWORD': 'DbaRoot@2025',
-        'HOST': 'localhost',  # muy importante, no debe estar en blanco
-        'PORT': '3306',       # puerto MySQL, normalmente 3306
+        'ENGINE': 'mysql.connector.django',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
+        'OPTIONS': {'autocommit': True},
     }
 }
 
